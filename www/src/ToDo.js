@@ -16,10 +16,11 @@ function ToDo({ toDos, addToDo, deleteToDo, completeToDo }) {
         <Col xs="12" className="mt-1 mb-1">
           <Form inline>
             <FormGroup>
-              <Label for="newToDo" hidden>ToDo</Label>
+              <Label for="newToDo" hidden>ToDo or not ToDo</Label>
               <Input type="text" name="todo" id="newToDo" placeholder="new item" />
             </FormGroup>
             <Button onClick={addToDo} color="primary" className="ml-1">Add</Button>
+            <Button onClick={getInfo} color="primary" className="ml-1">GetInfo</Button>
           </Form>
         </Col>
         <Col xs="12" className="mt-1 mb-1">
