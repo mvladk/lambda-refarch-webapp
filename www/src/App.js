@@ -79,7 +79,7 @@ function App() {
 
   const getInfo = async () => {
     const result = await axios({
-      url: `${config.api_base_url}/item/`,
+      url: `${config.api_base_url}/info/`,
       headers: {
         Authorization: idToken
       }
