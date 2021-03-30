@@ -57,16 +57,6 @@ function App() {
     });
   };
 
-  const getInfo = async () => {
-    const result = await axios({
-      url: `${config.api_base_url}/gi/`,
-      // headers: {
-      //   Authorization: idToken
-      // }
-    }).catch(error => {
-      console.log(error);
-    });
-
   const getAllTodos = async () => {
     const result = await axios({
       url: `${config.api_base_url}/item/`,
