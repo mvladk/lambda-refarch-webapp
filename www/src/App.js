@@ -77,6 +77,26 @@ function App() {
     }
   };
 
+  const getInfo = async () => {
+    const result = await axios({
+      url: `${config.api_base_url}/item/`,
+      headers: {
+        Authorization: idToken
+      }
+    }).catch(error => {
+      console.log(error);
+    });
+
+    console.log(result);
+
+    if (result && result.status === 401) {
+      clearCredentials();
+    } else if (result && result.status === 200) {
+      console.log(result.data.Items);
+      setToDos(result.data.Items);
+    }
+  };
+
   const addToDo = async (event) => {
     const newToDoInput = document.getElementById('newToDo');
     const item = newToDoInput.value;
@@ -159,7 +179,7 @@ function App() {
             <Col md="6">
               {idToken.length > 0 ?
                 (
-                  <ToDo updateAlert={updateAlert} toDos={toDos} addToDo={addToDo} deleteToDo={deleteToDo} completeToDo={completeToDo} />
+                  <ToDo updateAlert={updateAlert} toDos={toDos} getInfo={getInfo} addToDo={addToDo} deleteToDo={deleteToDo} completeToDo={completeToDo} />
                 ) : (
                   <Button
                     href={`https://${config.cognito_hosted_domain}/login?response_type=token&client_id=${config.aws_user_pools_web_client_id}&redirect_uri=${config.redirect_url}`}
