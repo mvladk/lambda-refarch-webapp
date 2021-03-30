@@ -90,10 +90,10 @@ function App() {
     console.log(result);
 
     if (result && result.status === 401) {
-      clearCredentials();
+      // clearCredentials();
     } else if (result && result.status === 200) {
-      console.log(result.data.Items);
-      setToDos(result.data.Items);
+      // console.log(result.data.Items);
+      // setToDos(result.data.Items);
     }
   };
 
