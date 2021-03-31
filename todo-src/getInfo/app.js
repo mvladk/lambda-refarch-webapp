@@ -24,7 +24,7 @@ const docClient = new AWS.DynamoDB.DocumentClient(options)
 // response helper
 const response = (statusCode, body, additionalHeaders) => ({
     statusCode,
-    body: JSON.stringify(body),
+    body: body,
     headers: {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', ...additionalHeaders},
 })
 
@@ -56,24 +56,24 @@ function getRecords(username) {
 }
 
 // Get symbol info.
-async function symInfo(j, res) {
-    try {
+// async function symInfo(j, res) {
+//     try {
   
-      // Start building the result json.
-    //   var res_j = {symbol : j.symbol};
+//       // Start building the result json.
+//     //   var res_j = {symbol : j.symbol};
   
-          var stats = await gClient.dailyStats({symbol: "ETHBTC"});
-        //   res_j.ask_price = stats.askPrice;
-        //   res_j.last_price = stats.lastPrice;
-        //   res_j.bid_price = stats.bidPrice;
+//           var stats = await gClient.dailyStats({symbol: "ETHBTC"});
+//         //   res_j.ask_price = stats.askPrice;
+//         //   res_j.last_price = stats.lastPrice;
+//         //   res_j.bid_price = stats.bidPrice;
   
-        return stats;
+//         return stats;
   
-    } catch (error) {
-      //res.json({error: error.toString()});
-      return error;
-    }
-}
+//     } catch (error) {
+//       //res.json({error: error.toString()});
+//       return error;
+//     }
+// }
 
 // Lambda Handler
 exports.getInfoFunc =
@@ -84,12 +84,13 @@ exports.getInfoFunc =
             metrics.setProperty("RequestId", context.requestId)
 
             try {
-                let username = getCognitoUsername(event);
+                // let username = getCognitoUsername(event);
                 // let data = await getRecords(username).promise()
                 const exchange = "binance";
                 const symbol = "BTC_USDT";
-                let data = symInfo({exchange:exchange, symbol:symbol})
-
+                // let data = symInfo({exchange:exchange, symbol:symbol})
+                let data = await gClient.dailyStats({symbol: "ETHBTC"});
+                console.log(data);
                 metrics.putMetric("Success", 1, Unit.Count)
                 return response(200, data)
 
