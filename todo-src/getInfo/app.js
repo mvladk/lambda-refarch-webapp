@@ -84,7 +84,7 @@ exports.getInfoFunc =
             metrics.setProperty("RequestId", context.requestId)
 
             try {
-                // let username = getCognitoUsername(event);
+                let username = getCognitoUsername(event);
                 // let data = await getRecords(username).promise()
                 const exchange = "binance";
                 const symbol = "BTC_USDT";
@@ -108,17 +108,4 @@ exports.getInfoFunc =
 	ENV
 	REGION
 Amplify Params - DO NOT EDIT */
-
-
-
-
-
-
-// module.exports.getInfoFunc = async (event, content) =>{
-//     const exchange = "binance";
-//     const symbol = "BTC_USDT";
-
-//     const res = symInfo({exchange:exchange, symbol:symbol})
-//     return res;
-// };
 
