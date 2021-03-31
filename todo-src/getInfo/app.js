@@ -80,16 +80,16 @@ exports.getInfoFunc =
     metricScope(metrics =>
         async (event, context, callback) => {
             metrics.setNamespace('TodoApp')
-            metrics.putDimensions({Service: "getInfo"})
+            metrics.putDimensions({Service: "getInfoFunc"})
             metrics.setProperty("RequestId", context.requestId)
 
             try {
-                let username = getCognitoUsername(event);
-                let data = await getRecords(username).promise()
+                // let username = getCognitoUsername(event);
+                // let data = await getRecords(username).promise()
                 const exchange = "binance";
                 const symbol = "BTC_USDT";
-                // let data = symInfo({exchange:exchange, symbol:symbol})
-                // let data = await gClient.dailyStats({symbol: "ETHBTC"});
+                
+                let data = await gClient.dailyStats({symbol: "ETHBTC"});
                 console.log(data);
                 metrics.putMetric("Success", 1, Unit.Count)
                 return response(200, data)
