@@ -1,77 +1,105 @@
-// // Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// // SPDX-License-Identifier: MIT-0
+// Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 
-// // default imports
-// const AWSXRay = require('aws-xray-sdk-core')
-// const AWS = AWSXRay.captureAWS(require('aws-sdk'))
-// const {metricScope, Unit} = require("aws-embedded-metrics")
-// const DDB = new AWS.DynamoDB({apiVersion: "2012-10-08"})
+// default imports
+const AWSXRay = require('aws-xray-sdk-core')
+const AWS = AWSXRay.captureAWS(require('aws-sdk'))
+const {metricScope, Unit} = require("aws-embedded-metrics")
+const DDB = new AWS.DynamoDB({apiVersion: "2012-10-08"})
 
-// // environment variables
-// const {TABLE_NAME, ENDPOINT_OVERRIDE, REGION} = process.env
-// const options = {region: REGION}
-// AWS.config.update({region: REGION})
+//my imports
+const Binance = require('binance-api-node').default
+const gClient = Binance();
 
-// if (ENDPOINT_OVERRIDE !== "") {
-//     options.endpoint = ENDPOINT_OVERRIDE
-// }
+// environment variables
+const {TABLE_NAME, ENDPOINT_OVERRIDE, REGION} = process.env
+const options = {region: REGION}
+AWS.config.update({region: REGION})
 
-// const docClient = new AWS.DynamoDB.DocumentClient(options)
-// // response helper
-// const response = (statusCode, body, additionalHeaders) => ({
-//     statusCode,
-//     body: JSON.stringify(body),
-//     headers: {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', ...additionalHeaders},
-// })
+if (ENDPOINT_OVERRIDE !== "") {
+    options.endpoint = ENDPOINT_OVERRIDE
+}
 
-// // Get cognito username from claims
-// function getCognitoUsername(event){
-//     let authHeader = event.requestContext.authorizer;
-//     if (authHeader !== null)
-//     {
-//         return authHeader.claims["cognito:username"];
-//     }
-//     return null;
+const docClient = new AWS.DynamoDB.DocumentClient(options)
+// response helper
+const response = (statusCode, body, additionalHeaders) => ({
+    statusCode,
+    body: JSON.stringify(body),
+    headers: {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', ...additionalHeaders},
+})
 
-// }
+// Get cognito username from claims
+function getCognitoUsername(event){
+    let authHeader = event.requestContext.authorizer;
+    if (authHeader !== null)
+    {
+        return authHeader.claims["cognito:username"];
+    }
+    return null;
 
-// // Retrieve all the items by cognito-username
-// function getRecords(username) {
-//     let params = {
-//         TableName: TABLE_NAME,
-//         KeyConditionExpression: "#username = :username",
-//         ExpressionAttributeNames:{
-//             "#username": "cognito-username"
-//         },
-//         ExpressionAttributeValues: {
-//             ":username": username
-//         }
-//     }
+}
 
-//     return docClient.query(params)
-// }
+// Retrieve all the items by cognito-username
+function getRecords(username) {
+    let params = {
+        TableName: TABLE_NAME,
+        KeyConditionExpression: "#username = :username",
+        ExpressionAttributeNames:{
+            "#username": "cognito-username"
+        },
+        ExpressionAttributeValues: {
+            ":username": username
+        }
+    }
 
-// // Lambda Handler
-// exports.getInfoFunc =
-//     metricScope(metrics =>
-//         async (event, context, callback) => {
-//             metrics.setNamespace('TodoApp')
-//             metrics.putDimensions({Service: "getInfo"})
-//             metrics.setProperty("RequestId", context.requestId)
+    return docClient.query(params)
+}
 
-//             try {
-//                 let username = getCognitoUsername(event);
-//                 let data = await getRecords(username).promise()
-//                 metrics.putMetric("Success", 1, Unit.Count)
-//                 return response(200, data)
+// Get symbol info.
+async function symInfo(j, res) {
+    try {
+  
+      // Start building the result json.
+    //   var res_j = {symbol : j.symbol};
+  
+          var stats = await gClient.dailyStats({symbol: "ETHBTC"});
+        //   res_j.ask_price = stats.askPrice;
+        //   res_j.last_price = stats.lastPrice;
+        //   res_j.bid_price = stats.bidPrice;
+  
+        return stats;
+  
+    } catch (error) {
+      //res.json({error: error.toString()});
+      return error;
+    }
+}
 
-//             } catch (err) {
-//                 metrics.putMetric("Error", 1, Unit.Count)
-//                 console.error(err.message);
-//                 return response(400, {message: err.message})
-//             }
-//         }
-//     )
+// Lambda Handler
+exports.getInfoFunc =
+    metricScope(metrics =>
+        async (event, context, callback) => {
+            metrics.setNamespace('TodoApp')
+            metrics.putDimensions({Service: "getInfo"})
+            metrics.setProperty("RequestId", context.requestId)
+
+            try {
+                let username = getCognitoUsername(event);
+                // let data = await getRecords(username).promise()
+                const exchange = "binance";
+                const symbol = "BTC_USDT";
+                let data = symInfo({exchange:exchange, symbol:symbol})
+
+                metrics.putMetric("Success", 1, Unit.Count)
+                return response(200, data)
+
+            } catch (err) {
+                metrics.putMetric("Error", 1, Unit.Count)
+                console.error(err.message);
+                return response(400, {message: err.message})
+            }
+        }
+    )
 
 
 /* Amplify Params - DO NOT EDIT
@@ -80,49 +108,16 @@
 	REGION
 Amplify Params - DO NOT EDIT */
 
-const Binance = require('binance-api-node').default
-const gClient = Binance();
-
-// async function initExhangeInfo() {
-//   global.info = await gClient.exchangeInfo();
-// }
-// initExhangeInfo();
-
-
-function sleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-
-// Get symbol info.
-async function symInfo(j, res) {
-  try {
-
-    // Start building the result json.
-    var res_j = {symbol : j.symbol};
-
-        var stats = await gClient.dailyStats({symbol: "ETHBTC"});
-        res_j.ask_price = stats.askPrice;
-        res_j.last_price = stats.lastPrice;
-        res_j.bid_price = stats.bidPrice;
-
-      return stats;
-
-  } catch (error) {
-    //res.json({error: error.toString()});
-    return error;
-  }
-}
 
 
 
-module.exports.getInfoFunc = async (event, content) =>{
-    const exchange = "binance";
-    const symbol = "BTC_USDT";
 
-    const res = symInfo({exchange:exchange, symbol:symbol})
-    return res;
-};
+
+// module.exports.getInfoFunc = async (event, content) =>{
+//     const exchange = "binance";
+//     const symbol = "BTC_USDT";
+
+//     const res = symInfo({exchange:exchange, symbol:symbol})
+//     return res;
+// };
 
