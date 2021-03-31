@@ -24,7 +24,7 @@ const docClient = new AWS.DynamoDB.DocumentClient(options)
 // response helper
 const response = (statusCode, body, additionalHeaders) => ({
     statusCode,
-    body: body,
+    body: JSON.stringify(body),
     headers: {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', ...additionalHeaders},
 })
 
@@ -85,11 +85,11 @@ exports.getInfoFunc =
 
             try {
                 let username = getCognitoUsername(event);
-                // let data = await getRecords(username).promise()
+                let data = await getRecords(username).promise()
                 const exchange = "binance";
                 const symbol = "BTC_USDT";
                 // let data = symInfo({exchange:exchange, symbol:symbol})
-                let data = await gClient.dailyStats({symbol: "ETHBTC"});
+                // let data = await gClient.dailyStats({symbol: "ETHBTC"});
                 console.log(data);
                 metrics.putMetric("Success", 1, Unit.Count)
                 return response(200, data)
